@@ -105,3 +105,6 @@ if uploaded_file is not None:
         st.error(f"🚨 사기 거래 가능성 높음 (확률: {prob:.2f})")
     else:
         st.success(f"✅ 정상 거래 (사기 확률: {prob:.2f})")
+else:
+    st.info("📥 CSV 파일을 업로드하면 분석이 시작됩니다.")
+
