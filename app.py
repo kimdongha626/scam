@@ -1,10 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, roc_curve, auc, f1_score
+from sklearn.metrics import classification_report, roc_curve, auc, f1_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -24,11 +22,10 @@ if uploaded_file is not None:
     st.subheader("📊 데이터 미리보기")
     st.write(data.head())
 
-    # Fraud 비율 시각화
+    # Fraud 비율 시각화 (Streamlit 내장 차트)
     st.subheader("Fraud 비율")
-    fig, ax = plt.subplots()
-    sns.countplot(x="Class", data=data, palette="coolwarm", ax=ax)
-    st.pyplot(fig)
+    fraud_counts = data["Class"].value_counts()
+    st.bar_chart(fraud_counts)
 
     # 특징과 라벨 분리
     X = data.drop("Class", axis=1)
@@ -66,23 +63,15 @@ if uploaded_file is not None:
         st.markdown(f"### {name}")
         st.text(classification_report(y_test, y_pred))
 
-        # ROC Curve
+        # ROC Curve 데이터 출력 (Streamlit line_chart)
         fpr, tpr, _ = roc_curve(y_test, y_prob)
-        roc_auc = auc(fpr, tpr)
-        fig, ax = plt.subplots()
-        ax.plot(fpr, tpr, color="darkorange", lw=2, label=f"AUC = {roc_auc:.2f}")
-        ax.plot([0,1],[0,1], color="navy", lw=2, linestyle="--")
-        ax.set_xlabel("False Positive Rate")
-        ax.set_ylabel("True Positive Rate")
-        ax.legend(loc="lower right")
-        st.pyplot(fig)
+        roc_df = pd.DataFrame({"FPR": fpr, "TPR": tpr})
+        st.line_chart(roc_df.set_index("FPR"))
 
-    # 모델별 F1 Score 비교 그래프
+    # 모델별 F1 Score 비교 (Streamlit bar_chart)
     st.subheader("📌 모델별 F1 Score 비교")
-    fig, ax = plt.subplots()
-    sns.barplot(x=list(results.keys()), y=list(results.values()), palette="viridis", ax=ax)
-    ax.set_ylim(0,1)
-    st.pyplot(fig)
+    f1_df = pd.DataFrame.from_dict(results, orient="index", columns=["F1 Score"])
+    st.bar_chart(f1_df)
 
     # 사용자 입력 예측
     st.subheader("🔍 새로운 거래 예측")
@@ -107,4 +96,3 @@ if uploaded_file is not None:
         st.success(f"✅ 정상 거래 (사기 확률: {prob:.2f})")
 else:
     st.info("📥 CSV 파일을 업로드하면 분석이 시작됩니다.")
-
